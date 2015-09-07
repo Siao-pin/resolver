@@ -1,8 +1,13 @@
 {
-  "name": "resolver",
+  "name": "input-resolver",
   "version": "1.0.0",
   "description": "Helper object used for checking input data",
   "main": "index.js",
+  "repository": {
+      "type": "git",
+      "url": "git://github.com/Siao-pin/resolver.git"
+  },
+  "homepage": "https://github.com/Siao-pin/resolver",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
