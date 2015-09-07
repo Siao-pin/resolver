@@ -1,4 +1,4 @@
-# Resolver
+# Input Resolver
 
 Resolver is helper object used for checking input data.
 
@@ -6,9 +6,9 @@ Resolver is helper object used for checking input data.
 To start using **Resolver** you have to instantiate it. Its module exports **Resolver** constructor, not an object.
 
 ```js
-var resolver = new (require('./resolver'))();     // one-line instantiation
+var resolver = new (require('./input-resolver'))();     // one-line instantiation
 
-var resolverConstructor = require('./resolver'); // instantiation via
+var resolverConstructor = require('./input-resolver'); // instantiation via
 var resolver = new resolverConstructor();        // construction function
 ```
 
@@ -83,7 +83,7 @@ feature will help you to distinguish different error types.
 ### Putting it all together
 
 ```js
-var resolver = new (require('./resolver'))();
+var resolver = new (require('./input-resolver'))();
 
 resolver
     .addParameter({ name: 'username', required: true })
