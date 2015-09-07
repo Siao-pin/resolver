@@ -2,13 +2,18 @@
 
 Resolver is helper object used for checking input data.
 
+## Installation
+```
+npm install input-resolver --save-dev
+```
+
 ## Instantiation
 To start using **Resolver** you have to instantiate it. Its module exports **Resolver** constructor, not an object.
 
 ```js
-var resolver = new (require('./input-resolver'))();     // one-line instantiation
+var resolver = new (require('input-resolver'))();     // one-line instantiation
 
-var resolverConstructor = require('./input-resolver'); // instantiation via
+var resolverConstructor = require('input-resolver'); // instantiation via
 var resolver = new resolverConstructor();        // construction function
 ```
 
@@ -83,7 +88,7 @@ feature will help you to distinguish different error types.
 ### Putting it all together
 
 ```js
-var resolver = new (require('./input-resolver'))();
+var resolver = new (require('input-resolver'))();
 
 resolver
     .addParameter({ name: 'username', required: true })
