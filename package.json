@@ -1,0 +1,17 @@
+{
+  "name": "resolver",
+  "version": "1.0.0",
+  "description": "Helper object used for checking input data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "data",
+    "check",
+    "input",
+    "resolver"
+  ],
+  "author": "Pavel Sayapin <Siao7@yandex.ru>",
+  "license": "ISC"
+}
