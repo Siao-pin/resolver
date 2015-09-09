@@ -1,6 +1,6 @@
 {
   "name": "input-resolver",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Helper object used for checking input data",
   "main": "index.js",
   "repository": {
