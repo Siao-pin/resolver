@@ -99,7 +99,7 @@ Resolver.prototype.addParameter = function(param) {
   return this;
 };
 
-Resolver.prototype.resolve = function(data) {
+Resolver.prototype.resolve = function(data, callback) {
   var getKeys = function(obj) {
     if (typeof obj != 'object') {
       return [];
@@ -114,16 +114,20 @@ Resolver.prototype.resolve = function(data) {
   };
 
   if (!this.parameters.length) {
-    throw new ResolverError(
-      'Resolver error: no parameters specified',
-      'NO_RESOLVER_PARAMETERS'
+    return callback(
+      new ResolverError(
+        'Resolver error: no parameters specified',
+        'NO_RESOLVER_PARAMETERS'
+      )
     );
   }
 
   if (!getKeys(data).length) {
-    throw new ResolverError(
-      'Resolver error: empty data provided',
-      'EMPTY_DATA'
+    return callback(
+      new ResolverError(
+        'Resolver error: empty data provided',
+        'EMPTY_DATA'
+      )
     );
   }
 
@@ -133,9 +137,11 @@ Resolver.prototype.resolve = function(data) {
 
     if (param.required) {
       if (typeof data[param.name] == 'undefined') {
-        throw new ResolverError(
-          'Resolver error: "' + param.name + '" required parameter not found',
-          'NO_REQUIRED_PARAMETER'
+        return callback(
+          new ResolverError(
+            'Resolver error: "' + param.name + '" required parameter not found',
+            'NO_REQUIRED_PARAMETER'
+          )
         );
       }
     } else {
@@ -154,23 +160,27 @@ Resolver.prototype.resolve = function(data) {
       typeof param.type == 'string' &&
       !Resolver.checkType(data[param.name], param.type)
     ) {
-      throw new ResolverError(
-        'Resolver error: "' + param.name + '" has wrong type',
-        'PARAMETER_WRONG_TYPE'
+      return callback(
+        new ResolverError(
+          'Resolver error: "' + param.name + '" has wrong type',
+          'PARAMETER_WRONG_TYPE'
+        )
       );
     }
 
     if (param.values && param.values.indexOf(data[param.name]) == -1) {
-      throw new ResolverError(
-        'Resolver error: "' + param.name + '" has wrong value',
-        'PARAMETER_WRONG_VALUE'
+      return callback(
+        new ResolverError(
+          'Resolver error: "' + param.name + '" has wrong value',
+          'PARAMETER_WRONG_VALUE'
+        )
       );
     }
 
     resolved[param.name] = data[param.name];
   }
 
-  return resolved;
+  return callback(null, resolved);
 };
 
 module.exports = Resolver;

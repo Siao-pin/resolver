@@ -63,7 +63,10 @@ resolver
     .addParameter({ name: 'email', required: true })
 ;
 
-var resolved = resolver.resolve({ username: 'Ivan', email: 'ivan@russia.ru' });
+var resolved = resolver.resolve({ username: 'Ivan', email: 'ivan@russia.ru' }, function(err, data) {
+    console.log(data)    
+});
+
 // output: { username: 'Ivan', email: 'ivan@russia.ru' }
 ```
 
@@ -78,11 +81,13 @@ var resolved = resolver.resolve({
     username: 'Ivan',
     email: 'ivan@russia.ru',
     description: 'This message will never be displayed'
+}, function(err, data) {
+    console.log(data);
 });
 // output: { username: 'Ivan' }
 ```
 
-If required parameter is missing or parameter has wrong value or type the different type of Error will be thrown. This
+If required parameter is missing or parameter has wrong value or type the different type of Error will be returned. This
 feature will help you to distinguish different error types.
 
 ### Putting it all together
@@ -97,17 +102,15 @@ resolver
     .addParameter({ name: 'description', required: false, default: 'Default description' })
 ;
 
-var resolved = {};
-
-try {
-    resolved = resolver.resolve(inputData); // some data from somewhere
-
-    console.log('Data successfully validated');
-} catch (err) {
-    if ('NO_REQUIRED_PARAMETER' == err.name) {
-        console.log('Some of the required parameter are not specified');
-    } else if ('PARAMETER_WRONG_TYPE' == err.name) {
-        console.log('"isActive" parameter has wrong type');
+resolver.resolve(inputData, function(err, data) {
+    if (err) {
+        if ('NO_REQUIRED_PARAMETER' == err.name) {
+            console.log('Some of the required parameter are not specified');
+        } else if ('PARAMETER_WRONG_TYPE' == err.name) {
+            console.log('"isActive" parameter has wrong type');
+        }    
+    } else {
+        console.log('Data successfully validated');
     }
-}
+});
 ```
