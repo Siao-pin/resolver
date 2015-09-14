@@ -334,6 +334,50 @@ describe('Resolver', function() {
             });
         });
     });
+
+    describe('resolvePromise()', function() {
+        it('should return Promise object', function() {
+            var resolver = getResolver();
+            var promise = resolver.resolvePromise({});
+
+            promise.should.be.an.Object;
+            (promise instanceof Promise).should.be.exactly(true);
+        });
+
+        it ('should be rejected if no parameters were specified', function() {
+            var resolver = getResolver();
+            var promise = resolver.resolvePromise({});
+
+            promise
+                .catch(function(err) {
+                    err.name.should.equal('NO_RESOLVER_PARAMETERS');
+                })
+            ;
+        });
+
+        it ('should be fulfilled if data were successfully resolved', function(itdone) {
+            var resolver = getResolver();
+
+            resolver
+                .addParameter({ name: 'param1', required: true })
+                .addParameter({ name: 'param2', required: true })
+            ;
+
+            var data = {
+                param1: 'some value',
+                param2: 321
+            };
+
+            var promise = resolver.resolvePromise(data);
+
+            promise
+                .then(function(validated) {
+                    validated.should.have.properties(data);
+                    itdone();
+                })
+            ;
+        });
+    });
 });
 
 function getResolver()
@@ -341,4 +385,3 @@ function getResolver()
     var resolverConstructor = require('../index');
     return new resolverConstructor();
 }
-

@@ -7,12 +7,18 @@ ResolverError.prototype = new Error();
 
 function Resolver() {
   this.parameters = [];
+  this.asPromise = false;
 }
 
 Resolver.types = ['string', 'boolean', 'number', 'object'];
 
 Resolver.checkType = function(param, type) {
   return typeof param === type;
+};
+
+Resolver.prototype.asPromise = function(asPromise)
+{
+    this.asPromise = (typeof asPromise == 'boolean') ? asPromise : true;
 };
 
 Resolver.prototype.getParameter = function(name) {
@@ -99,7 +105,7 @@ Resolver.prototype.addParameter = function(param) {
   return this;
 };
 
-Resolver.prototype.resolve = function(data, callback) {
+Resolver.prototype._resolve = function(data, callback) {
   var getKeys = function(obj) {
     if (typeof obj != 'object') {
       return [];
@@ -181,6 +187,20 @@ Resolver.prototype.resolve = function(data, callback) {
   }
 
   return callback(null, resolved);
+};
+
+Resolver.prototype.resolve = function(data, callback) {
+    this._resolve(data, callback);
+};
+
+Resolver.prototype.resolvePromise = function(inputData) {
+    var _this = this;
+    return new Promise(function(fulfill, reject) {
+        _this._resolve(inputData, function(err, data) {
+            if (err) return reject(err);
+            return fulfill(data);
+        });
+    });
 };
 
 module.exports = Resolver;

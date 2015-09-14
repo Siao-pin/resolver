@@ -114,3 +114,22 @@ resolver.resolve(inputData, function(err, data) {
     }
 });
 ```
+
+## Promises
+
+Since v1.2.0 Input Resolver can return `Promise` object:
+
+```js
+resolver
+    .addParameter({ name: 'username', required: true })
+;
+
+var promise = resolver.resolvePromise(someData);
+
+promise
+    .then(
+        function(dataResolved) { /* validated data */ }, 
+        function(err) { /* validation error */ }
+    )
+;
+```
