@@ -239,6 +239,16 @@ describe('Resolver', function() {
                 err.name.should.equal('PARAMETER_WRONG_TYPE');
                 err.message.should.equal('Resolver error: "param" has wrong type');
             });
+
+            resolver = getResolver();
+            resolver.addParameter({ name: 'param', required: true, type: 'array' });
+
+            resolver.resolve({ param: 'string' }, function(err, data) {
+                should(err).Error;
+                should(data).exactly(undefined);
+                err.name.should.equal('PARAMETER_WRONG_TYPE');
+                err.message.should.equal('Resolver error: "param" has wrong type');
+            });
         });
 
         it('should return error if parameter\'s value was not found in specified values list', function() {
@@ -310,6 +320,23 @@ describe('Resolver', function() {
             resolver.resolve(data, function(err, validated) {
                 (err === null).should.be.true;
                 validated.should.have.properties(data);
+            });
+        });
+
+        it('should successfully validate array-type parameter', function() {
+            var resolver = getResolver();
+
+            resolver
+                .addParameter({ name: 'param1', required: true, type: 'array' })
+            ;
+
+            var data = {
+                param1: ['value1', 'value2', 'value3']
+            };
+
+            resolver.resolve(data, function(err, validated) {
+                (err === null).should.be.exactly(true);
+                should(validated).have.properties(data);
             });
         });
 

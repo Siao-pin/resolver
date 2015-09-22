@@ -10,10 +10,10 @@ function Resolver() {
   this.asPromise = false;
 }
 
-Resolver.types = ['string', 'boolean', 'number', 'object'];
+Resolver.types = ['string', 'boolean', 'number', 'object', 'array'];
 
 Resolver.checkType = function(param, type) {
-  return typeof param === type;
+  return type == 'array' ? Array.isArray(param) : typeof param === type;
 };
 
 Resolver.prototype.asPromise = function(asPromise)

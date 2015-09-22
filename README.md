@@ -27,7 +27,7 @@ function can accept properties:
 - default
 - values
 
-**type** property can be `string`, `number`, `boolean` or `object`. For optional parameters (**required** is `false`) **default**
+**type** property can be `string`, `number`, `boolean`, `array` or `object`. For optional parameters (**required** is `false`) **default**
 value can be set, but be cautious: if you set **type** property for this parameter and **default** value's type doesn't
 match it **Resolver** will throw an error:
 
