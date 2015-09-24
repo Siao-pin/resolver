@@ -573,7 +573,6 @@ describe('Resolver', function() {
             };
 
             resolver.resolve(data, function(err, validated) {
-                (err === null).should.be.true;
                 should(err).Error;
                 should(validated).exactly(undefined);
                 err.name.should.equal('NO_REQUIRED_PARAMETER');
@@ -581,33 +580,199 @@ describe('Resolver', function() {
             });
         });
 
-        //it('should fail if parameter defined inside of its parent has wrong type',
-        //function() {
-        //    var resolver = getResolver();
-        //
-        //    resolver
-        //        .addParameter({
-        //            name: 'param1',
-        //            required: true,
-        //            type: 'number',
-        //            parent: 'parent'
-        //        })
-        //    ;
-        //
-        //    var data = {
-        //        parent: {
-        //            param1: 'some value'
-        //        },
-        //    };
-        //
-        //    resolver.resolve(data, function(err, validated) {
-        //        (err === null).should.be.true;
-        //        should(err).Error;
-        //        should(validated).exactly(undefined);
-        //        err.name.should.equal('NO_REQUIRED_PARAMETER');
-        //        err.message.should.equal('Resolver error: "param1" required parameter not found');
-        //    });
-        //});
+        it('should succeed if parameter defined inside of its parent',
+        function() {
+            var resolver = getResolver();
+
+            resolver
+                .addParameter({
+                    name: 'param1',
+                    required: true,
+                    parent: 'parent'
+                })
+            ;
+
+            var data = {
+                parent: {
+                    param1: 'some value'
+                }
+            };
+
+            resolver.resolve(data, function(err, validated) {
+                should(err).be.exactly(null);
+                validated.should.have.properties({
+                    parent: {param1: 'some value'}
+                });
+                should(validated.param1).be.exactly(undefined);
+            });
+        });
+
+        it('should succeed if parameters defined inside of its parent',
+        function() {
+            var resolver = getResolver();
+
+            resolver
+                .addParameter({
+                    name: 'param1',
+                    required: true,
+                    parent: 'parent'
+                })
+                .addParameter({
+                    name: 'param2',
+                    required: true,
+                    parent: 'parent'
+                })
+            ;
+
+            var data = {
+                parent: {
+                    param1: 'some value',
+                    param2: 'another value'
+                }
+            };
+
+            resolver.resolve(data, function(err, validated) {
+                should(err).be.exactly(null);
+                validated.should.have.properties(data);
+                should(validated.param1).be.exactly(undefined);
+                should(validated.param2).be.exactly(undefined);
+            });
+        });
+
+        it('should succeed if 2 parameters defined inside of its parent and' +
+        ' 1 outside',
+        function() {
+            var resolver = getResolver();
+
+            resolver
+                .addParameter({
+                    name: 'param1',
+                    required: true,
+                    parent: 'parent'
+                })
+                .addParameter({
+                    name: 'param2',
+                    required: true,
+                    parent: 'parent'
+                })
+                .addParameter({
+                    name: 'param3',
+                    required: true
+                })
+            ;
+
+            var data = {
+                parent: {
+                    param1: 'some value',
+                    param2: 'another value'
+                },
+                param3: 'blah'
+            };
+
+            resolver.resolve(data, function(err, validated) {
+                should(err).be.exactly(null);
+                validated.should.have.properties(data);
+                should(validated.param1).be.exactly(undefined);
+                should(validated.param2).be.exactly(undefined);
+                should(validated.param3).be.exactly('blah');
+            });
+        });
+
+        it('should succeed if 2 parameters defined inside of its parent and' +
+        ' 2 inside another parent',
+        function() {
+            var resolver = getResolver();
+
+            resolver
+                .addParameter({
+                    name: 'param1',
+                    required: true,
+                    parent: 'parent'
+                })
+                .addParameter({
+                    name: 'param2',
+                    required: true,
+                    parent: 'parent'
+                })
+                .addParameter({
+                    name: 'param3',
+                    required: true,
+                    parent: 'parent2'
+                })
+                .addParameter({
+                    name: 'param4',
+                    required: true,
+                    parent: 'parent2'
+                })
+            ;
+
+            var data = {
+                parent: {
+                    param1: 'some value',
+                    param2: 'another value'
+                },
+                parent2: {
+                    param3: 1,
+                    param4: 2
+                }
+            };
+
+            resolver.resolve(data, function(err, validated) {
+                should(err).be.exactly(null);
+                validated.should.have.properties(data);
+                should(validated.param1).be.exactly(undefined);
+                should(validated.param2).be.exactly(undefined);
+                should(validated.param3).be.exactly(undefined);
+                should(validated.param4).be.exactly(undefined);
+            });
+        });
+
+        it('should succeed if 2 parameters defined inside of its parent and' +
+        ' 1 inside another parent (one is optional)',
+        function() {
+            var resolver = getResolver();
+
+            resolver
+                .addParameter({
+                    name: 'param1',
+                    required: true,
+                    parent: 'parent'
+                })
+                .addParameter({
+                    name: 'param2',
+                    required: true,
+                    parent: 'parent'
+                })
+                .addParameter({
+                    name: 'param3',
+                    required: false,
+                    parent: 'parent2'
+                })
+                .addParameter({
+                    name: 'param4',
+                    required: true,
+                    parent: 'parent2'
+                })
+            ;
+
+            var data = {
+                parent: {
+                    param1: 'some value',
+                    param2: 'another value'
+                },
+                parent2: {
+                    param4: 2
+                }
+            };
+
+            resolver.resolve(data, function(err, validated) {
+                should(err).be.exactly(null);
+                validated.should.have.properties(data);
+                should(validated.param1).be.exactly(undefined);
+                should(validated.param2).be.exactly(undefined);
+                should(validated.param4).be.exactly(undefined);
+            });
+        });
     });
 
     describe('resolvePromise()', function() {

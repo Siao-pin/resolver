@@ -1,3 +1,7 @@
+v 1.2.3
+    - Parameter's with parent properties duplication to the root of the
+      resolved object fixed
+
 v 1.2.2
     - "parent" parameter's property added
 

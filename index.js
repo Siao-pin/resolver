@@ -231,7 +231,11 @@ Resolver.prototype._resolve = function(data, callback) {
       );
     }
 
-    resolved[param.name] = parameterData;
+    if (param.parent) {
+      resolved[param.parent][param.name] = parameterData;
+    } else {
+      resolved[param.name] = parameterData;
+    }
   }
 
   return callback(null, resolved);

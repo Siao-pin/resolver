@@ -67,7 +67,8 @@ resolver
 
 **parent** property defines container object for given parameter. Its existence 
 will be checked not inside the input data, but inside its suboject named
-**parent**. If **parent** parameter was not defined it would be created.
+**parent**. If **parent** parameter was not defined it would be created. Only
+1 level of hierarchy is allowed for now (you cannot define parent for parent).
 If it was defined with type different from **object** resolver
 would throw an error:
 
