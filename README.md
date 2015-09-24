@@ -26,14 +26,25 @@ function can accept properties:
 - type
 - default
 - values
+- parent
 
-**type** property can be `string`, `number`, `boolean`, `array` or `object`. For optional parameters (**required** is `false`) **default**
-value can be set, but be cautious: if you set **type** property for this parameter and **default** value's type doesn't
-match it **Resolver** will throw an error:
+**type** property can be `string`, `number`, `boolean`, `array` or `object`.
+For optional parameters (**required** is `false`) **default** value can be set,
+but be cautious: if you set **type** property for this parameter
+and **default** value's type doesn't match it **Resolver** will throw an error:
 
 ```js
-/* Throws: "Resolver error: default value doesn't match the param type" */
-resolver.addParameter({ name: 'isActive', required: false, type: boolean, default: 'true' });
+/*
+    Throws: "Resolver error: default value doesn't match the param type" 
+*/
+resolver
+    .addParameter({ 
+        name: 'isActive',
+        required: false,
+        type: boolean,
+        default: 'true'
+    })
+;
 ```
 
 Also attempting to attach default value to required parameter lead to an error:
@@ -42,7 +53,7 @@ Also attempting to attach default value to required parameter lead to an error:
 resolver.addParameter({ name: 'isActive', required: true, default: 'true' });
 ```
 
-**values** parameter is an array of available values for parameter.
+**values** property is an array of available values for parameter.
 
 `addParameter()` returns **Resolver** object so it is chainable:
 
@@ -54,6 +65,25 @@ resolver
 ;
 ```
 
+**parent** property defines container object for given parameter. Its existence 
+will be checked not inside the input data, but inside its suboject named
+**parent**. If **parent** parameter was not defined it would be created.
+If it was defined with type different from **object** resolver
+would throw an error:
+
+```js
+/*
+    Throws: "'Resolver error: parent for parameter "isActive" is defined,
+    but has type of "number" instead of "object"'" 
+*/
+resolver
+    .addParameter({ name: 'parent', required: true, type: 'number' })
+    .addParameter({ name: 'isActive', required: true, parent: 'parent' })
+;
+```
+This property can be useful to define additional (parent parameter) check
+implicitly.
+
 ## Check input data
 To check input data `resolve()` method is used:
 
@@ -63,9 +93,16 @@ resolver
     .addParameter({ name: 'email', required: true })
 ;
 
-var resolved = resolver.resolve({ username: 'Ivan', email: 'ivan@russia.ru' }, function(err, data) {
-    console.log(data)    
-});
+var resolved = resolver.resolve(
+    {
+        username: 'Ivan',
+        email: 'ivan@russia.ru'
+    }, 
+    
+    function(err, data) {
+        console.log(data);    
+    }
+);
 
 // output: { username: 'Ivan', email: 'ivan@russia.ru' }
 ```
@@ -87,8 +124,9 @@ var resolved = resolver.resolve({
 // output: { username: 'Ivan' }
 ```
 
-If required parameter is missing or parameter has wrong value or type the different type of Error will be returned. This
-feature will help you to distinguish different error types.
+If required parameter is missing or parameter has wrong value or type the
+different type of Error will be returned. This feature will help you
+to distinguish different error types.
 
 ### Putting it all together
 

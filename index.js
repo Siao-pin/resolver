@@ -21,13 +21,16 @@ Resolver.prototype.asPromise = function(asPromise)
     this.asPromise = (typeof asPromise == 'boolean') ? asPromise : true;
 };
 
-Resolver.prototype.getParameter = function(name) {
+Resolver.prototype.getParameter = function(name, parent) {
   if (!this.parameters.length) {
     return null;
   }
 
+  parent = typeof parent == 'string' && '' != parent ? parent : null;
   for (var i = 0, len = this.parameters.length; i < len; i++) {
     if (name === this.parameters[i].name) {
+      if (parent && parent != this.parameters[i].parent) continue;
+
       return this.parameters[i];
     }
   }
@@ -59,9 +62,18 @@ Resolver.prototype.addParameter = function(param) {
     );
   }
 
+  var paramFound = this.getParameter(param.name, param.parent);
+  if (null !== paramFound) {
+      throw new ResolverError(
+          'Resolver error: trying to overwrite "' + param.name + '" parameter',
+          'PARAMETER_OVERWRITE'
+      );
+  }
+
   var p = {
     name: param.name,
-    required: param.required
+    required: param.required,
+    parent: null
   };
 
   if (typeof param.type != 'undefined') {
@@ -98,6 +110,38 @@ Resolver.prototype.addParameter = function(param) {
     }
 
     p.values = param.values;
+  }
+
+  if (typeof param.parent == 'string') {
+    if ('' == param.parent) {
+        throw new Error(
+          'Resolver error: parent property for "' + param.name +
+          '" is an empty string'
+        );
+    }
+
+    var parentParam = this.getParameter(param.parent);
+    if (null !== parentParam) {
+      if (parentParam.type && parentParam.type != 'object') {
+        throw new Error(
+          'Resolver error: parent for parameter "' + param.name + '"' +
+          ' is defined, but has type of "' + parentParam.type + '" instead of' +
+          ' "object"'
+        );
+      }
+
+      parentParam.type = 'object';
+      parentParam.required = true;
+    } else {
+      this.parameters.unshift({
+        name: param.parent,
+        required: true,
+        type: 'object',
+        parent: null
+      });
+    }
+
+    p.parent = param.parent;
   }
 
   this.parameters.push(p);
@@ -141,8 +185,12 @@ Resolver.prototype._resolve = function(data, callback) {
   for (var i = 0; i < this.parameters.length; i++) {
     var param = this.parameters[i];
 
+    var parameterData = param.parent ? data[param.parent][param.name] :
+      data[param.name]
+    ;
+
     if (param.required) {
-      if (typeof data[param.name] == 'undefined') {
+      if (typeof parameterData == 'undefined') {
         return callback(
           new ResolverError(
             'Resolver error: "' + param.name + '" required parameter not found',
@@ -152,19 +200,19 @@ Resolver.prototype._resolve = function(data, callback) {
       }
     } else {
       if (
-        typeof data[param.name] == 'undefined' &&
+        typeof parameterData == 'undefined' &&
         typeof param.default == 'undefined'
       ) {
         continue;
       }
 
-      data[param.name] = typeof data[param.name] == 'undefined' ?
-      param.default : data[param.name];
+      parameterData = typeof parameterData == 'undefined' ?
+      param.default : parameterData;
     }
 
     if (
       typeof param.type == 'string' &&
-      !Resolver.checkType(data[param.name], param.type)
+      !Resolver.checkType(parameterData, param.type)
     ) {
       return callback(
         new ResolverError(
@@ -174,7 +222,7 @@ Resolver.prototype._resolve = function(data, callback) {
       );
     }
 
-    if (param.values && param.values.indexOf(data[param.name]) == -1) {
+    if (param.values && param.values.indexOf(parameterData) == -1) {
       return callback(
         new ResolverError(
           'Resolver error: "' + param.name + '" has wrong value',
@@ -183,7 +231,7 @@ Resolver.prototype._resolve = function(data, callback) {
       );
     }
 
-    resolved[param.name] = data[param.name];
+    resolved[param.name] = parameterData;
   }
 
   return callback(null, resolved);

@@ -40,6 +40,29 @@ describe('Resolver', function() {
             (function() {
                 resolver.addParameter({ name : 'Fuck', required: 'some string' })
             }).should.throw();
+
+            (function() {
+                resolver.addParameter({
+                  name: 'Fuck',
+                  required: true,
+                  parent: ''
+                })
+            }).should.throw();
+
+            (function() {
+                resolver
+                    .addParameter({
+                        name: 'oldFuck',
+                        required: true,
+                        type: 'number'
+                    })
+                    .addParameter({
+                      name: 'Fuck',
+                      required: true,
+                      parent: 'oldFuck'
+                    })
+                ;
+            }).should.throw();
         });
 
         it('should throw error if parameter type is not valid', function() {
@@ -92,9 +115,30 @@ describe('Resolver', function() {
                 .addParameter({ name: 'param4', required: true })
             ;
 
-            resolver.getParameter('param3').should.have.keys('name', 'required');
+            resolver.getParameter('param3').should.have.keys(
+                'name', 'required', 'parent'
+            );
             resolver.getParameter('param3')['name'].should.equal('param3');
         });
+
+        it('should throw error if trying to overwrite parent parameter',
+            function() {
+                var resolver = getResolver();
+
+                (function() {
+                    resolver
+                        .addParameter({
+                            name: 'param1',
+                            required: true,
+                            parent: 'parent'
+                        })
+                        .addParameter({
+                            name: 'parent',
+                            required: true,
+                            parent: null
+                        });
+                }).should.throw();
+            });
     });
 
     describe('getAllParameters()', function() {
@@ -107,8 +151,106 @@ describe('Resolver', function() {
             ;
 
             resolver.getAllParameters().should.have.length(2);
-            resolver.getAllParameters()[0].should.have.keys('name', 'required');
-            resolver.getAllParameters()[1].should.have.keys('name', 'required');
+            resolver.getAllParameters()[0].should.have.keys(
+                'name', 'required', 'parent'
+            );
+            resolver.getAllParameters()[1].should.have.keys(
+                'name', 'required', 'parent'
+            );
+        });
+
+        it('should return two parameters if "parent" property ' +
+        'set for only parameter', function() {
+            var resolver = getResolver();
+
+            resolver
+                .addParameter({
+                    name: 'param1',
+                    required: true,
+                    parent: 'parent'
+                })
+            ;
+
+            resolver.getAllParameters().should.have.length(2);
+            resolver.getAllParameters()[0].name.should.be.equal('parent');
+            should(resolver.getAllParameters()[0].parent).be.exactly(null);
+            resolver.getAllParameters()[1].name.should.be.equal('param1');
+            resolver.getAllParameters()[1].parent.should.be.exactly('parent');
+        });
+
+        it('should return 4 parameters if different "parent" properties ' +
+        'set for 2 parameters', function() {
+            var resolver = getResolver();
+
+            resolver
+                .addParameter({
+                    name: 'param1',
+                    required: true,
+                    parent: 'parent1'
+                })
+                .addParameter({
+                    name: 'param1',
+                    required: true,
+                    parent: 'parent2'
+                })
+            ;
+
+            resolver.getAllParameters().should.have.length(4);
+            resolver.getAllParameters()[0].should.have.properties({
+                name: 'parent2',
+                required: true,
+                parent: null
+            });
+            resolver.getAllParameters()[1].should.have.properties({
+                name: 'parent1',
+                required: true,
+                parent: null
+            });
+            resolver.getAllParameters()[2].should.have.properties({
+                name: 'param1',
+                required: true,
+                parent: 'parent1'
+            });
+            resolver.getAllParameters()[3].should.have.properties({
+                name: 'param1',
+                required: true,
+                parent: 'parent2'
+            });
+        });
+
+        it('should return 3 parameters if the same "parent" property ' +
+        'set for 2 parameters', function() {
+            var resolver = getResolver();
+
+            resolver
+                .addParameter({
+                    name: 'param1',
+                    required: true,
+                    parent: 'parent'
+                })
+                .addParameter({
+                    name: 'param2',
+                    required: true,
+                    parent: 'parent'
+                })
+            ;
+
+            resolver.getAllParameters().should.have.length(3);
+            resolver.getAllParameters()[0].should.have.properties({
+                name: 'parent',
+                required: true,
+                parent: null
+            });
+            resolver.getAllParameters()[1].should.have.properties({
+                name: 'param1',
+                required: true,
+                parent: 'parent'
+            });
+            resolver.getAllParameters()[2].should.have.properties({
+                name: 'param2',
+                required: true,
+                parent: 'parent'
+            });
         });
     });
 
@@ -141,8 +283,43 @@ describe('Resolver', function() {
                 .addParameter({ name: 'param4', required: true })
             ;
 
-            resolver.getParameter('param3').should.have.keys('name', 'required');
+            resolver.getParameter('param3').should.have.keys(
+                'name', 'required', 'parent'
+            );
             resolver.getParameter('param3')['name'].should.equal('param3');
+        });
+
+        it('should return no parameter parent defined and not exists',
+        function() {
+            var resolver = getResolver();
+
+            resolver
+                .addParameter({ name: 'param1', required: true })
+                .addParameter({ name: 'param2', required: true })
+                .addParameter({ name: 'param3', required: true })
+                .addParameter({ name: 'param4', required: true })
+            ;
+
+            should(resolver.getParameter('param3', 'parent')).be.exactly(null);
+        });
+
+        it('should return parameter for defined parent',
+        function() {
+            var resolver = getResolver();
+
+            resolver
+                .addParameter({ name: 'param1', required: true })
+                .addParameter({ name: 'param2', required: true })
+                .addParameter({ name: 'param3', required: true })
+                .addParameter({ name: 'param3', required: false, parent: 'parent' })
+                .addParameter({ name: 'param4', required: true })
+            ;
+
+            resolver.getParameter('param3', 'parent').should.have.properties({
+                name: 'param3',
+                required: false,
+                parent: 'parent'
+            });
         });
     });
 
@@ -360,6 +537,77 @@ describe('Resolver', function() {
                 });
             });
         });
+
+        it('should fail if parameter\'s parent is not provided',
+        function() {
+            var resolver = getResolver();
+
+            resolver
+                .addParameter({name: 'param1', required: true, parent: 'parent'})
+            ;
+
+            var data = {
+                param1: 'some value'
+            };
+
+            resolver.resolve(data, function(err, validated) {
+                (err === null).should.be.true;
+                should(err).Error;
+                should(validated).exactly(undefined);
+                err.name.should.equal('NO_REQUIRED_PARAMETER');
+                err.message.should.equal('Resolver error: "parent" required parameter not found');
+            });
+        });
+
+        it('should fail if parameter defined outside of the its parent',
+        function() {
+            var resolver = getResolver();
+
+            resolver
+                .addParameter({name: 'param1', required: true, parent: 'parent'})
+            ;
+
+            var data = {
+                parent: {},
+                param1: 'some value'
+            };
+
+            resolver.resolve(data, function(err, validated) {
+                (err === null).should.be.true;
+                should(err).Error;
+                should(validated).exactly(undefined);
+                err.name.should.equal('NO_REQUIRED_PARAMETER');
+                err.message.should.equal('Resolver error: "param1" required parameter not found');
+            });
+        });
+
+        //it('should fail if parameter defined inside of its parent has wrong type',
+        //function() {
+        //    var resolver = getResolver();
+        //
+        //    resolver
+        //        .addParameter({
+        //            name: 'param1',
+        //            required: true,
+        //            type: 'number',
+        //            parent: 'parent'
+        //        })
+        //    ;
+        //
+        //    var data = {
+        //        parent: {
+        //            param1: 'some value'
+        //        },
+        //    };
+        //
+        //    resolver.resolve(data, function(err, validated) {
+        //        (err === null).should.be.true;
+        //        should(err).Error;
+        //        should(validated).exactly(undefined);
+        //        err.name.should.equal('NO_REQUIRED_PARAMETER');
+        //        err.message.should.equal('Resolver error: "param1" required parameter not found');
+        //    });
+        //});
     });
 
     describe('resolvePromise()', function() {

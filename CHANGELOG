@@ -1,0 +1,5 @@
+v 1.2.2
+    - "parent" parameter's property added
+
+v 1.2.1
+    - "array" parameter's type checking added
